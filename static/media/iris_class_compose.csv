@@ -1,0 +1,4 @@
+class,count,sum,compose
+Iris-setosa,50,150,33.33333333333333
+Iris-versicolor,50,150,33.33333333333333
+Iris-virginica,50,150,33.33333333333333

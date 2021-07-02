@@ -1,0 +1,414 @@
+{% extends './base.html' %}
+{% load static %}
+
+	<!-- plotly.jsでヒストグラムを記載するPGM例 : https://plotly.com/javascript/histograms/ -->
+
+	{% block body %}
+
+		<!-- グラフを配置する。 -->
+		<div class='graph_half'>
+			<div>
+				<select id="select_bar1" class="select_bar1" name="select_bar1">
+				</select>
+				<class id='myDiv1'></class>
+			</div>
+			<div>
+				<select id="select_bar2" class="select_bar2" name="select_bar2">
+				</select>
+				<form id="radio_buttun1" class="radio_buttun1" name="radio_buttun1">
+				</form>
+				<class id='myDiv2'></class>
+			</div>
+			<div>
+				<select id="select_bar3" class="select_bar3" name="select_bar3">
+				</select>
+				<select id="select_bar4" class="select_bar4" name="select_bar4">
+				</select>
+				<class id='myDiv3'></class>
+			</div>
+			<div id='myDiv4'></div>
+		</div>
+
+		<div class='graph_full'>
+			<div id='myDiv5'></div>
+		</div>
+
+		<!-- myDiv1の領域にドロップダウンリストで選択した項目のヒストグラムを描画する。 -->
+		<!-- ヒストグラム : https://plotly.com/javascript/histograms/ -->
+		<script type="text/javascript">
+			
+			//headerの項目が入ったドロップダウンリストを作成する。
+
+			//ReadCSVはbase.htmlで定義した関数で、指定したCSVを2次元配列化する。
+			var csv_data = ReadCSV("{% static 'media/iris.csv' %}")
+			var select_var_list = []
+			for (var i=0; i<csv_data[0].length; i++){
+				if(csv_data[0][i] != 'class'){
+					select_var_list.push(csv_data[0][i])
+				}
+			}
+
+			//htmlのclass名がselect_bar1のドロップダウンリストにselect_var_listの項目(csvのヘッダーのclass以外の項目)を追加する。
+			AddDropdownContents(selector_class_id='select_bar1', contents_list=select_var_list)
+
+			//引数にドロップダウンリストから選択された変数を持たせて、選択された変数に応じて出力グラフを変更する関数を作成する。
+			function MakeHistogramSelect(select_variable){
+
+				//ReadCSVはbase.htmlで定義した関数で、指定したCSVを2次元配列化する。
+				var csv_data = ReadCSV("{% static 'media/iris.csv' %}")
+
+				//csv_dataの1行目(ヘッダー部分)からselect_variableが何列目の変数であるかを取得する。
+				var col_num = csv_data[0].indexOf(select_variable);
+
+				//select_variableの数値をvalue_listに格納する。
+				//csv_dataの2行目3列の数字〜最終行のselect_variableの値を配列value_listに追加していく。1行目はヘッダーのため、読み込まない。
+				var value_list = []
+				for(var i=1; i<csv_data.length; ++i){
+					value_list.push(csv_data[i][col_num]) 
+				}
+
+				//xに上記で作成した配列value_listを指定し、typeをhistogramにすることでsepal_lengthのヒストグラムが作成される。
+				var trace = {
+					x: value_list,  
+					type: 'histogram',
+
+					//histogramに色をpinkに指定する。
+					marker: {color: 'pink'},
+				};
+				var graph_data = [trace];
+
+				//レイアウトを設定する。
+				var graph_layout = {
+					//グラフのタイトルを指定する。
+					title: select_variable + "のヒストグラム", 
+					//x軸のタイトルを指定する。
+					xaxis: {title: select_variable}, 
+					//y軸のタイトルを指定する。
+					yaxis: {title: "Count"}
+				};
+
+				//ドロップダウンリストで選択した項目のヒストグラムをHTMLのmyDiv1のidがある領域に描画する。
+				Plotly.newPlot('myDiv1', graph_data, graph_layout);
+			}
+
+			//デフォルトの描画設定は引数がヘッダーの1番左の項目にする。
+			MakeHistogramSelect(select_variable=csv_data[0][0])
+
+			//htmlのselect_bar1オブジェクトが変更されると、選択された変数をvar1に代入し、それを上記のMakeHistogramSelectの引数として渡して再実行する。
+			$(function() {
+				$('#select_bar1').on("change", function(){
+					var var1 = $('[name=select_bar1] option:selected').text();
+						MakeHistogramSelect(select_variable=var1)
+				});
+			});
+
+		</script>
+
+		<!-- myDiv2の領域にドロップダウンリストで選択した項目とラジオボタンで選択した項目のヒストグラムを描画する。 -->
+		<script type="text/javascript">
+			
+			//headerの項目が入ったドロップダウンリストを作成する。
+
+			//ReadCSVはbase.htmlで定義した関数で、指定したCSVを2次元配列化する。
+			var csv_data = ReadCSV("{% static 'media/iris.csv' %}")
+			var select_var_list = []
+			for (var i=0; i<csv_data[0].length; i++){
+				if(csv_data[0][i] != 'class'){
+					select_var_list.push(csv_data[0][i])
+				}
+			}
+
+			//htmlのclass名がselect_bar2のドロップダウンリストにselect_var_listの項目(csvのヘッダーのclass以外の項目)を追加する。
+			AddDropdownContents(selector_class_id='select_bar2', contents_list=select_var_list)
+
+			//classの種類別にラジオボタンを作成する。
+
+			//ReadCSVはbase.htmlで定義した関数で、指定したCSVを2次元配列化する。
+			var csv_data = ReadCSV("{% static 'media/iris_class_compose.csv' %}")
+			var col_num = csv_data[0].indexOf('class');
+			var radio_var_list = []
+			for (var i=1; i<csv_data.length; i++){
+				radio_var_list.push(csv_data[i][col_num])
+			}
+
+			//htmlのclass名がradio_buttun1のラジオボタンにradio_var_listの項目を追加する。
+			AddRadioButtunContents(form_id='radio_buttun1', contents_list=radio_var_list)
+
+			//引数にドロップダウンリストから選択された変数とラジオボタンから選択された項目を持たせて、選択された変数に応じて出力グラフを変更する関数を作成する。
+			function MakeHistogramSelectRadio(select_variable, radio_contents){
+
+				//ReadCSVはbase.htmlで定義した関数で、指定したCSVを2次元配列化する。
+				var csv_data = ReadCSV("{% static 'media/iris.csv' %}")
+
+				//csv_dataの1行目(ヘッダー部分)からselect_variableが何列目の変数であるかを取得する。
+				var col_num1 = csv_data[0].indexOf(select_variable);
+
+				//csv_dataの1行目(ヘッダー部分)からclassが何列目の変数であるかを取得する。
+				var class_col_num = csv_data[0].indexOf('class');
+
+				//select_variableの数値かつradio_contentsの項目のものをvalue_listに格納する。
+				//csv_dataの2行目3列の数字〜最終行のselect_variableの値を配列value_listに追加していく。1行目はヘッダーのため、読み込まない。
+				var value_list = []
+				for(var i=1; i<csv_data.length; ++i){
+					if(csv_data[i][class_col_num] == radio_contents){
+						value_list.push(csv_data[i][col_num1]) 
+					}
+				}
+
+				//xに上記で作成した配列value_listを指定し、typeをhistogramにすることでsepal_lengthのヒストグラムが作成される。
+				var trace = {
+					x: value_list,  
+					type: 'histogram',
+
+					//histogramに色をpinkに指定する。
+					marker: {color: 'pink'},
+				};
+				var graph_data = [trace];
+
+				//レイアウトを設定する。
+				var graph_layout = {
+					//グラフのタイトルを指定する。
+					title: select_variable + "のヒストグラム", 
+					//x軸のタイトルを指定する。
+					xaxis: {title: select_variable}, 
+					//y軸のタイトルを指定する。
+					yaxis: {title: "Count"}
+				};
+
+				//sepal_lengthのヒストグラムをHTMLのmyDiv7のidがある場所に描画する。
+				Plotly.newPlot('myDiv2', graph_data, graph_layout);
+			}
+
+			//デフォルトの描画設定は引数がドロップダウンリスト、ラジオボタン共に1番左の項目にする。
+			MakeHistogramSelectRadio(select_variable='sepal_length', radio_contents='Iris-setosa')
+
+			//ドロップダウンリストまたはラジオボタンが変更されるとグラフが更新される。
+
+			//HTMLのidがselect_bar2のオブジェクトが変更されると、選択された変数をvar1に代入し、それを上記のMakeHistogramSelectRadioの引数として渡して再実行する。
+			//ドロップダウンリストが変更された時、変更されたドロップダウンリストの項目とラジオボタンがチェックされている項目を引数として渡して再実行する。
+			$(function() {
+				$('#select_bar2').on("change", function(){
+					var var1 = $('[name=select_bar2] option:selected').text();
+					var var2 = $("input[name='radio1']:checked").val();
+					MakeHistogramSelectRadio(select_variable=var1, radio_contents=var2);
+				});
+			});
+
+			//HTMLのidがradio_buttun1のオブジェクトが変更されると、選択された変数をvar2に代入し、それを上記のMakeHistogramSelectの引数として渡して再実行する。
+			//ラジオボタンが変更された時、変更されたドロップダウンリストの項目とラジオボタンがチェックされた項目を引数として渡して再実行する。
+			$(function() {
+				$('#radio_buttun1').on("change", function(){
+					var var1 = $('[name=select_bar2] option:selected').text();
+					var var2 = $("input[name='radio1']:checked").val();
+					MakeHistogramSelectRadio(select_variable=var1, radio_contents=var2)
+				});
+			});
+
+		</script>
+
+		<!-- myDiv3の領域にsepal_length*sepal_widthの散布図を描画する。 -->
+		<!-- 散布図 : https://plotly.com/javascript/line-and-scatter/#line-and-scatter-plot -->
+		<script type="text/javascript">
+
+			//headerの項目が入ったドロップダウンリストを作成する。
+
+			//ReadCSVはbase.htmlで定義した関数で、指定したCSVを2次元配列化する。
+			var csv_data = ReadCSV("{% static 'media/iris.csv' %}")
+			var select_var_list = []
+			for (var i=0; i<csv_data[0].length; i++){
+				if(csv_data[0][i] != 'class'){
+					select_var_list.push(csv_data[0][i])
+				}
+			}
+
+			//htmlのclass名がselect_bar3,4のドロップダウンリストにselect_var_listの項目(csvのヘッダーのclass以外の項目)を追加する。
+			AddDropdownContents(selector_class_id='select_bar3', contents_list=select_var_list)
+			AddDropdownContents(selector_class_id='select_bar4', contents_list=select_var_list)
+
+			//引数にドロップダウンリストから選択された変数を持たせて、選択された変数に応じて出力グラフを変更する関数を作成する。
+			function MakeScatterSelect(select_variable1, select_variable2){
+
+				//ReadCSVはbase.htmlで定義した関数で、指定したCSVを2次元配列化する。
+				var csv_data = ReadCSV("{% static 'media/iris.csv' %}")
+
+				//csv_dataの1行目(ヘッダー部分)からsepal_lengthが何列目の変数であるかを取得する。
+				var col_num1 = csv_data[0].indexOf(select_variable1);
+
+				//csv_dataの1行目(ヘッダー部分)からsepal_widthが何列目の変数であるかを取得する。
+				var col_num2 = csv_data[0].indexOf(select_variable2);
+
+				//sepal_lengthの数値をvalue_list1、sepal_widthの数値をvalue_list2に格納する。
+				var value_list1 = []
+				var value_list2 = []
+				for(var i=1; i<csv_data.length; ++i){
+					value_list1.push(csv_data[i][col_num1])
+					value_list2.push(csv_data[i][col_num2]) 
+				}
+
+				//xに配列value_list1を指定し、yに配列value_list2を指定し、modeをmarkers、typeをscatterにすることでsepal_length*sepal_widthの散布図が作成される。
+				var trace = {
+					x: value_list1,
+					y: value_list2,
+					mode: 'markers',
+					type: 'scatter'
+				};
+				var graph_data = [trace];
+
+				//レイアウトを設定する。
+				var graph_layout = {
+					title: select_variable1 + "*" + select_variable2 + "の散布図", 
+					xaxis: {title: select_variable1}, 
+					yaxis: {title: select_variable2}
+				};
+
+				//sepal_lengthのヒストグラムをHTMLのmyDiv4のidがある場所に描画する。
+				Plotly.newPlot('myDiv3', graph_data, graph_layout);
+
+			}
+
+			//デフォルトの描画設定は引数が2つのドロップダウンリスト共に1番左の項目にする。
+			MakeScatterSelect(select_variable1=csv_data[0][0], select_variable2=csv_data[0][0])
+
+			//どちらかのドロップダウンリストが変更されるとグラフが更新される。
+
+			//
+			$(function() {
+				$('#select_bar3').on("change", function(){
+					var var1 = $('[name=select_bar3] option:selected').text();
+					var var2 = $('[name=select_bar4] option:selected').text();
+					MakeScatterSelect(select_variable1=var1, select_variable2=var2);
+				});
+			});
+
+			//
+			$(function() {
+				$('#select_bar4').on("change", function(){
+					var var1 = $('[name=select_bar3] option:selected').text();
+					var var2 = $('[name=select_bar4] option:selected').text();
+					MakeScatterSelect(select_variable1=var1, select_variable2=var2);
+				});
+			});
+
+		</script>
+
+		<!-- myDiv4の領域にclassの件数の構成比の円グラフを描画する。 -->
+		<!-- 円グラフ : https://plotly.com/javascript/pie-charts/ -->
+		<script type="text/javascript">
+
+			//ReadCSVはbase.htmlで定義した関数で、指定したCSVを2次元配列化する。
+			var csv_data = ReadCSV("{% static 'media/iris_class_compose.csv' %}")
+
+			//csv_dataの1行目(ヘッダー部分)からclassが何列目の変数であるかを取得する。
+			var col_num1 = csv_data[0].indexOf('class');
+
+			//csv_dataの1行目(ヘッダー部分)からcomposeが何列目の変数であるかを取得する。
+			var col_num2 = csv_data[0].indexOf('compose');
+
+			//classの値をvalue_list1、composeの数値をvalue_list2に格納する。
+			var value_list1 = []
+			var value_list2 = []
+			for(var i=1; i<csv_data.length; ++i){
+				value_list1.push(csv_data[i][col_num1])
+				value_list2.push(csv_data[i][col_num2]) 
+			}
+
+			//valuesに構成比のリスト、labelsに項目のリスト、typeにpieを指定して、円グラフを作成する。
+			var graph_data = [{
+				values: value_list2,
+				labels: value_list1,
+				type: 'pie'
+			}];
+			
+			var graph_layout = {
+				title: "classの構成比", 
+				height: 400,
+				width: 500
+			};
+
+			Plotly.newPlot('myDiv4', graph_data, graph_layout);
+
+		</script>
+
+		<!-- myDiv5の領域にclass毎に各変数のBoxplotを描画する。 -->
+		<!-- Boxplot : https://plotly.com/javascript/box-plots/ -->
+		<script type="text/javascript">
+
+			//ReadCSVはbase.htmlで定義した関数で、指定したCSVを2次元配列化する。
+			var csv_data = ReadCSV("{% static 'media/iris.csv' %}")
+
+			//csv_dataの1行目(ヘッダー部分)からclassが何列目の変数であるかを取得する。
+			var col_num1 = csv_data[0].indexOf('class');
+
+			//csv_dataの1行目(ヘッダー部分)からsepal_lengthが何列目の変数であるかを取得する。
+			var col_num2 = csv_data[0].indexOf('sepal_length');
+			//csv_dataの1行目(ヘッダー部分)からsepal_widthが何列目の変数であるかを取得する。
+			var col_num3 = csv_data[0].indexOf('sepal_width');
+			//csv_dataの1行目(ヘッダー部分)からpetal_lengthが何列目の変数であるかを取得する。
+			var col_num4 = csv_data[0].indexOf('petal_length');
+			//csv_dataの1行目(ヘッダー部分)からpetal_widthが何列目の変数であるかを取得する。
+			var col_num5 = csv_data[0].indexOf('petal_width');
+
+			//value_list1-5にそれぞれの変数の値を格納する。
+			var value_list1 = []
+			var value_list2 = []
+			var value_list3 = []
+			var value_list4 = []
+			var value_list5 = []
+			for(var i=1; i<csv_data.length; ++i){
+				value_list1.push(csv_data[i][col_num1])
+				value_list2.push(csv_data[i][col_num2])
+				value_list3.push(csv_data[i][col_num3])
+				value_list4.push(csv_data[i][col_num4])
+				value_list5.push(csv_data[i][col_num5])
+			}
+
+			//xにはBoxPlotのx軸の項目のリストを指定する。
+			//yには数値のリストをそれぞれ指定する。
+			var trace1 = {
+				y: value_list2,
+				x: value_list1,
+				name: 'sepal_length',
+				marker: {color: '#3D9970'},
+				type: 'box'
+			};
+
+			var trace2 = {
+				y: value_list3,
+				x: value_list1,
+				name: 'sepal_width',
+				marker: {color: '#FF4136'},
+				type: 'box'
+			};
+
+			var trace3 = {
+				y: value_list4,
+				x: value_list1,
+				name: 'petal_length',
+				marker: {color: '#FF851B'},
+				type: 'box'
+			};
+
+			var trace4 = {
+				y: value_list5,
+				x: value_list1,
+				name: 'petal_width',
+				marker: {color: 'black'},
+				type: 'box'
+			};
+
+			var graph_data = [trace1, trace2, trace3, trace4];
+
+			var graph_layout = {
+				title: 'class別Boxplot',
+				yaxis: {
+					title: 'value',
+					zeroline: false
+				},
+				boxmode: 'group'
+			};
+
+			Plotly.newPlot('myDiv5', graph_data, graph_layout);
+
+		</script>
+
+	{% endblock body%}

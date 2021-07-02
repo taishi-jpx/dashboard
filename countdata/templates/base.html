@@ -1,0 +1,116 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+		<meta charset="utf-8">
+		<title>DashBorad</title>
+
+		<!-- CSSを参照する。-->
+		<link href="{% static 'css/style.css' %}" rel="stylesheet">
+
+		<!-- ローカルにダウンロードしたjsを参照する。 -->
+		<script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+		<script src="{% static 'js/d3.v6.min.js' %}"></script>
+		<script src="{% static 'js/plotly-latest.min.js' %}"></script>
+
+		<!-- ネットワークになるjsを参照する。(オンラインの場合のみ挙動する。) -->
+		<!-- <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script> -->
+		<!-- <script src="https://d3js.org/d3.v6.min.js"></script> -->
+		<!-- <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> -->
+
+		<!-- 上の方にTopページへ戻る用のリンクを貼る。(index.htmlへ推移するリンクを貼る。) -->
+		<nav id="gnav">
+			<ul class="inner">
+				<li><a href="../">Top</a></li>
+			</ul>
+	　	</nav>
+
+		<!-- 各htmlでからの中身が展開される。 -->
+		{% block head %}
+		{% endblock %}
+	</head>
+
+	<body>
+		<!-- どのHTMLでも利用する関数をbase.htmlに記載する。 -->
+		<script type="text/javascript">
+			//CSVファイルを読み込んで2次元配列を返す関数
+			//https://qiita.com/bambuu/items/1902453ca13e4d8662ee
+			//https://designsupply-web.com/media/knowledgeside/5432/
+			function ReadCSV(csv_file){
+
+				//HTTPでファイルを読み込むためのXMLHttpRrequestオブジェクトを生成する。
+				var csv = new XMLHttpRequest(csv_file);
+				//読み込むCSVファイルを指定する。
+				csv.open("get", csv_file , false);
+				//HTTPリクエストの送信する。
+				csv.send();
+				//改行ごとに配列化する。
+				var csv_row = csv.responseText.split("\n");
+				//最終的な二次元配列を入れるための変数を宣言する。
+				var csv_data = [];
+				//各行ごとにカンマで区切った文字列を要素とした二次元配列を生成する。
+				for(var i=0; i<csv_row.length-1; ++i){
+					csv_data[i] = csv_row[i].split(',');
+				}
+
+				for(var i=0; i<csv_data[0].length; ++i){
+					for(var j=0; j<csv_data.length; ++j){
+						csv_data[j][i] = csv_data[j][i].replace(/\s+/g, "");
+					}
+				}
+				return csv_data;
+			}
+
+			//ドロップダウンリストに要素を追加する関数
+			function AddDropdownContents(selector_class_id, contents_list){
+
+				//HTMLで設定したselector_idにcontents_listの内容を追加する。
+				//https://techacademy.jp/magazine/22315
+
+				//HTML要素のうち、class名が引数で指定したselector_id名のものを取得する。
+				selector = document.querySelector('.' + selector_class_id);
+
+				//selector_idにcontents_listの要素を追加する。
+				for (var i=0; i<contents_list.length; i++) {
+					var currentOption = document.createElement('option');
+					currentOption.text = contents_list[i];
+					selector.appendChild(currentOption);
+				}
+
+			}
+
+			//ラジオボタンに要素を追加する関数
+			function AddRadioButtunContents(form_id, contents_list){
+
+				//HTMLで設定したform_idにcontents_listの内容を追加する。
+				//https://www.pre-practice.net/2017/12/html_14.html
+
+				//HTML要素のうち、class名が引数で指定したform_id名のものを取得する。
+				former = document.querySelector('.' + form_id);
+
+				//form_idにcontents_listの要素を追加する。
+				for (var i=0; i<contents_list.length; i++) {
+					var currentInput = document.createElement('input');
+					var currentlabel = document.createElement('label');
+					currentInput.type = 'radio';
+					currentInput.name = 'radio1';
+					currentInput.value = contents_list[i];
+					if(i == 0){
+						currentInput.checked = true;
+					}
+					currentlabel.innerHTML = contents_list[i];
+					former.appendChild(currentInput);
+					former.appendChild(currentlabel);
+				}
+
+			}
+
+		</script>
+
+		<!-- 各htmlでからの中身が展開される。 -->
+		{% block body %}
+		{% endblock %}
+	</body>
+
+</html>

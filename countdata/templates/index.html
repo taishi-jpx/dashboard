@@ -1,0 +1,37 @@
+{% extends './base.html' %}
+	{% block head %}
+		<!-- ヘッダータイトルを表示する。 -->
+		<div id="head-title">irisのデータを集計します。</div>
+	{% endblock head %}
+
+	{% block body %}
+		<!-- 「ファイルを選択」ボタンが押され、データが選択されると「集計」ボタンをアクティブにする。 -->
+		<script type="text/javascript">
+			$(function() {
+				//idがinputdataのオブジェクトに変更があったら(「ファイルを選択」ボタンが押されたら)ファイル名をfileという変数に格納する。
+				$('#inputdata').on("change", function(){
+					var file = this.files[0];
+					//変数fileがnullでなければ、「集計」ボタンをクリックできる状態にする。
+					if(file != null) {
+						$("#count_button").prop("disabled", false);
+						$('#count_button').css('display', 'block');
+					}
+				});	
+			});
+		</script>
+
+		<!-- ファイル選択ボタンとPOST形式でデータをサーバーに送るボタンを作成する。 -->
+		<div class="wrapper">
+			<form method="post" enctype="multipart/form-data">
+				<!-- {% csrf_token %}はサーバーへデータを送る時に安全に行うために必要なコマンドである。 -->
+				{% csrf_token %}
+				<!-- ファイル選択ボタンを作成する。 -->
+				<div>
+					<label class="select_file" for="inputdata">irisのファイルを選択してください。<br>
+					<input id="inputdata" type="file" name="iris_data"></label>
+				</div>
+				<!-- POST形式でデータをサーバーに送るボタンを作成する。-->
+				<button id="count_button" class="select_file" type="submit" disabled>集計</button>
+			</form>
+		</div>
+	{% endblock body%}
